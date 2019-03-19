@@ -44,4 +44,9 @@ interface Driver
      * Stop collection of code coverage information.
      */
     public function stop(): array;
+
+    /**
+     * Specify that branch coverage should be included with collected code coverage information.
+     */
+    public function setDetermineBranchCoverage(bool $flag): void;
 }

@@ -30,6 +30,11 @@ final class Xdebug implements Driver
     private $filter;
 
     /**
+     * @var bool
+     */
+    private $determineBranchCoverage = false;
+
+    /**
      * @throws RuntimeException
      */
     public function __construct(Filter $filter = null)
@@ -54,11 +59,16 @@ final class Xdebug implements Driver
      */
     public function start(bool $determineUnusedAndDead = true): void
     {
+        $flag = 0;
+
         if ($determineUnusedAndDead) {
-            \xdebug_start_code_coverage(XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE);
-        } else {
-            \xdebug_start_code_coverage();
+            $flag = XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE;
         }
+
+        if ($this->determineBranchCoverage) {
+            $flag |= XDEBUG_CC_BRANCH_CHECK;
+        }
+        \xdebug_start_code_coverage($flag);
     }
 
     /**
@@ -71,6 +81,17 @@ final class Xdebug implements Driver
         \xdebug_stop_code_coverage();
 
         return $this->cleanup($data);
+    }
+
+    /**
+     * Specify that branch coverage should be included with collected code coverage information.
+     */
+    public function setDetermineBranchCoverage(bool $flag): void
+    {
+        if ($flag && \version_compare(\phpversion('xdebug'), '2.3.2', '<')) {
+            throw new RuntimeException('Branch coverage requires Xdebug 2.3.2 or newer');
+        }
+        $this->determineBranchCoverage = $flag;
     }
 
     private function cleanup(array $data): array
