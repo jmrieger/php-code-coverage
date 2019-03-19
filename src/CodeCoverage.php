@@ -134,6 +134,11 @@ final class CodeCoverage
     private $report;
 
     /**
+     * @var bool
+     */
+    private $determineBranchCoverage;
+
+    /**
      * @throws RuntimeException
      */
     public function __construct(Driver $driver = null, Filter $filter = null)
@@ -456,6 +461,23 @@ final class CodeCoverage
     public function setUnintentionallyCoveredSubclassesWhitelist(array $whitelist): void
     {
         $this->unintentionallyCoveredSubclassesWhitelist = $whitelist;
+    }
+
+    /**
+     * Specify whether branch coverage should be processed, if the chosen driver supports branch coverage
+     * Branch coverage is only supported for the Xdebug driver, with an xdebug version of >= 2.3.2
+     */
+    public function setDetermineBranchCoverage(bool $flag): void
+    {
+        if ($flag) {
+            if ($this->driver instanceof Xdebug && \version_compare(\phpversion('xdebug'), '2.3.2', '>=')) {
+                $this->determineBranchCoverage = $flag;
+            } else {
+                throw new RuntimeException('Branch coverage requires Xdebug version 2.3.2 or newer');
+            }
+        } else {
+            $this->determineBranchCoverage = false;
+        }
     }
 
     /**

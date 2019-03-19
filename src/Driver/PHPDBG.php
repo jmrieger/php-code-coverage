@@ -77,6 +77,14 @@ final class PHPDBG implements Driver
     }
 
     /**
+     * Specify that branch coverage should be included with collected code coverage information.
+     */
+    public function setDetermineBranchCoverage(bool $flag): void
+    {
+        throw new RuntimeException('Branch coverage is not supported in PHPDBG');
+    }
+
+    /**
      * Convert phpdbg based data into the format CodeCoverage expects
      */
     private function detectExecutedLines(array $sourceLines, array $dbgData): array
