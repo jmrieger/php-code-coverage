@@ -247,6 +247,7 @@ final class CodeCoverage
 
         $this->currentId = $id;
 
+        $this->driver->setDetermineBranchCoverage($this->determineBranchCoverage);
         $this->driver->start($this->shouldCheckForDeadAndUnused);
     }
 
@@ -959,7 +960,6 @@ final class CodeCoverage
 
         if ($this->processUncoveredFilesFromWhitelist) {
             $this->shouldCheckForDeadAndUnused = false;
-
             $this->driver->start();
 
             foreach ($this->filter->getWhitelist() as $file) {
