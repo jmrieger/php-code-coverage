@@ -98,7 +98,14 @@ final class Xdebug implements Driver
     private function cleanup(array $data): array
     {
         foreach (\array_keys($data) as $file) {
-            unset($data[$file][0]);
+            if (!isset($data[$file]['lines'])) {
+                $data[$file] = ['lines' => $data[$file]];
+            }
+            if (!isset($data[$file]['functions'])) {
+                $data[$file]['functions'] = [];
+            }
+
+            unset($data[$file]['lines'][0]);
 
             if (!$this->filter->isFile($file)) {
                 continue;
@@ -106,9 +113,9 @@ final class Xdebug implements Driver
 
             $numLines = $this->getNumberOfLinesInFile($file);
 
-            foreach (\array_keys($data[$file]) as $line) {
+            foreach (\array_keys($data[$file]['lines']) as $line) {
                 if ($line > $numLines) {
-                    unset($data[$file][$line]);
+                    unset($data[$file]['lines'][$line]);
                 }
             }
         }
