@@ -354,30 +354,21 @@ final class CodeCoverage
 
             foreach ($fileData['lines'] as $line => $lineCoverage) {
                 if ($lineCoverage === Driver::LINE_EXECUTED) {
-                    if ($this->data[$file]['lines'][$line] === null) {
-                        $this->data[$file]['lines'][$line] = [
-                            'pathCovered' => false,
-                            'tests'       => [$id],
-                        ];
-                    } elseif (!\in_array($id, $this->data[$file]['lines'][$line]['tests'], true)) {
-                        $this->data[$file]['lines'][$line]['tests'][] = [$id];
-                    }
+                    $this->addCoverageLinePathCovered($file, $line, false);
+                    $this->addCoverageLineTest($file, $line, $id);
                 }
             }
 
             foreach ($fileData['functions'] as $function => $functionCoverage) {
                 foreach ($functionCoverage['branches'] as $branch => $branchCoverage) {
-                    if ($branchCoverage['hit'] === 1) {
-                        $this->data[$file]['branches'][$function][$branch]['hit'] = 1;
-                        if (!\in_array($id, $this->data[$file]['branches'][$function][$branch]['tests'], true)) {
-                            $this->data[$file]['branches'][$function][$branch]['tests'][] = $id;
-                        }
+                    if (($branchCoverage['hit'] ?? 0) === 1) {
+                        $this->addCoverageBranchHit($file, $function, $branch, $branchCoverage['hit'] ?? 0);
+                        $this->addCoverageBranchTest($file, $function, $branch, $id);
                     }
                 }
+
                 foreach ($functionCoverage['paths'] as $path => $pathCoverage) {
-                    if ($pathCoverage['hit'] === 1 && $this->data[$file]['paths'][$function][$path]['hit'] === 0) {
-                        $this->data[$file]['paths'][$function][$path]['hit'] = 1;
-                    }
+                    $this->addCoveragePathHit($file, $function, $path, $pathCoverage['hit'] ?? 0);
                 }
             }
         }
@@ -396,11 +387,13 @@ final class CodeCoverage
             \array_merge($this->filter->getWhitelistedFiles(), $that->filter()->getWhitelistedFiles())
         );
 
-        // I don't know how / why this works, but it should be refactored to ->getData()
-        foreach ($that->getData() as $file => $fileData) {
-            if (!isset($this->data[$file])) {
+        $thisData = $this->getData();
+        $thatData = $that->getData();
+
+        foreach ($thatData as $file => $fileData) {
+            if (!isset($thisData[$file])) {
                 if (!$this->filter->isFiltered($file)) {
-                    $this->data[$file] = $fileData;
+                    $thisData[$file] = $fileData;
                 }
 
                 continue;
@@ -409,30 +402,30 @@ final class CodeCoverage
             // we should compare the lines if any of two contains data
             $compareLineNumbers = \array_unique(
                 \array_merge(
-                    \array_keys($this->data[$file]['lines']),
-                    \array_keys($that->data[$file]['lines']) // can this be $fileData?
+                    \array_keys($thisData[$file]['lines']),
+                    \array_keys($thatData[$file]['lines']) // can this be $fileData?
                 )
             );
 
             foreach ($compareLineNumbers as $line) {
-                $thatPriority = $this->getLinePriority($that->data[$file]['lines'], $line);
-                $thisPriority = $this->getLinePriority($this->data[$file]['lines'], $line);
+                $thatPriority = $this->getLinePriority($thatData[$file]['lines'], $line);
+                $thisPriority = $this->getLinePriority($thisData[$file]['lines'], $line);
 
                 if ($thatPriority > $thisPriority) {
-                    $this->data[$file]['lines'][$line] = $that->data[$file]['lines'][$line];
-                } elseif ($thatPriority === $thisPriority && \is_array($this->data[$file]['lines'][$line])) {
+                    $thisData[$file]['lines'][$line] = $thatData[$file]['lines'][$line];
+                } elseif ($thatPriority === $thisPriority && \is_array($thisData[$file]['lines'][$line])) {
                     if ($line['pathCovered'] === true) {
-                        $this->data[$file]['lines']['line']['pathCovered'] = $line['pathCovered'];
+                        $thisData[$file]['lines'][$line]['pathCovered'] = $line['pathCovered'];
                     }
-                    $this->data[$file]['lines'][$line] = \array_unique(
-                        \array_merge($this->data[$file]['lines'][$line], $that->data[$file]['lines'][$line])
+                    $thisData[$file]['lines'][$line] = \array_unique(
+                        \array_merge($thisData[$file]['lines'][$line], $thatData[$file]['lines'][$line])
                     );
                 }
             }
         }
 
-        $this->tests  = \array_merge($this->tests, $that->getTests());
-        $this->report = null;
+        $this->tests = \array_merge($this->tests, $that->getTests());
+        $this->setData($thisData);
     }
 
     public function setCacheTokens(bool $flag): void
@@ -517,12 +510,9 @@ final class CodeCoverage
      *
      * During a merge, a higher number is better.
      *
-     * @param array $data
-     * @param int   $line
-     *
      * @return int
      */
-    private function getLinePriority($data, $line)
+    private function getLinePriority(array $data, int $line)
     {
         if (!\array_key_exists($line, $data)) {
             return 1;
@@ -557,7 +547,10 @@ final class CodeCoverage
                 throw new MissingCoversAnnotationException;
             }
 
-            $data = [];
+            $data = [
+                'lines'     => [],
+                'functions' => [],
+            ];
 
             return;
         }
@@ -568,7 +561,7 @@ final class CodeCoverage
 
         if ($this->checkForUnintentionallyCoveredCode &&
             (!$this->currentId instanceof TestCase ||
-            (!$this->currentId->isMedium() && !$this->currentId->isLarge()))) {
+                (!$this->currentId->isMedium() && !$this->currentId->isLarge()))) {
             $this->performUnintentionallyCoveredCodeCheck($data, $linesToBeCovered, $linesToBeUsed);
         }
 
@@ -580,7 +573,11 @@ final class CodeCoverage
 
         foreach (\array_keys($data) as $filename) {
             $_linesToBeCovered = \array_flip($linesToBeCovered[$filename]);
-            $data[$filename]   = \array_intersect_key($data[$filename], $_linesToBeCovered);
+
+            $data[$filename]['lines'] = \array_intersect_key(
+                $data[$filename],
+                $_linesToBeCovered
+            );
         }
     }
 
@@ -604,22 +601,208 @@ final class CodeCoverage
             }
 
             foreach ($this->getLinesToBeIgnored($filename) as $line) {
-                unset($data[$filename][$line]);
+                unset($data[$filename]['lines'][$line]);
             }
         }
     }
 
     private function initializeFilesThatAreSeenTheFirstTime(array $data): void
     {
-        foreach ($data as $file => $lines) {
-            if (!isset($this->data[$file]) && $this->filter->isFile($file)) {
-                $this->data[$file] = [];
+        foreach ($data as $file => $fileData) {
+            if (isset($this->data[$file]) || !$this->filter->isFile($file)) {
+                continue;
+            }
+            $this->initializeFileCoverageData($file);
 
-                foreach ($lines as $k => $v) {
-                    $this->data[$file][$k] = $v === -2 ? null : [];
+            // If this particular line is identified as not covered, mark it as null
+            foreach ($fileData['lines'] as $lineNumber => $flag) {
+                if ($flag === Driver::LINE_NOT_EXECUTABLE) {
+                    $this->data[$file]['lines'][$lineNumber] = null;
+                }
+            }
+
+            foreach ($fileData['functions'] as $functionName => $functionData) {
+                // @todo - should this have a helper to merge covered paths?
+                $this->data[$file]['paths'][$functionName] = $functionData['paths'];
+
+                foreach ($functionData['branches'] as $branchIndex => $branchData) {
+                    $this->addCoverageBranchHit($file, $functionName, $branchIndex, $branchData['hit']);
+                    $this->addCoverageBranchLineStart($file, $functionName, $branchIndex, $branchData['line_start']);
+                    $this->addCoverageBranchLineEnd($file, $functionName, $branchIndex, $branchData['line_end']);
+
+                    for ($curLine = $branchData['line_start']; $curLine < $branchData['line_end']; $curLine++) {
+                        if (isset($this->data[$file]['lines'][$curLine])) {
+                            $this->addCoverageLinePathCovered($file, $curLine, (bool) $branchData['hit']);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private function initializeFileCoverageData(string $file): void
+    {
+        if (!isset($this->data[$file]) && $this->filter->isFile($file)) {
+            $this->data[$file] = [
+                'lines'    => [],
+                'branches' => [],
+                'paths'    => [],
+            ];
+        }
+    }
+
+    private function addCoverageLinePathCovered(string $file, int $lineNumber, bool $isCovered): void
+    {
+        $this->initializeFileCoverageData($file);
+
+        // Initialize the data coverage array for this line
+        if (!isset($this->data[$file]['lines'][$lineNumber])) {
+            $this->data[$file]['lines'][$lineNumber] = [
+                'pathCovered' => false,
+                'tests'       => [],
+            ];
+        }
+
+        $this->data[$file]['lines'][$lineNumber]['pathCovered'] = $isCovered;
+    }
+
+    private function addCoverageLineTest(string $file, int $lineNumber, string $testId): void
+    {
+        $this->initializeFileCoverageData($file);
+
+        // Initialize the data coverage array for this line
+        if (!isset($this->data[$file]['lines'][$lineNumber])) {
+            $this->data[$file]['lines'][$lineNumber] = [
+                'pathCovered' => false,
+                'tests'       => [],
+            ];
+        }
+
+        if (!\in_array($testId, $this->data[$file]['lines'][$lineNumber]['tests'], true)) {
+            $this->data[$file]['lines'][$lineNumber]['tests'][] = $testId;
+        }
+    }
+
+    private function addCoverageBranchHit(string $file, string $functionName, int $branchIndex, int $hit): void
+    {
+        $this->initializeFileCoverageData($file);
+
+        if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
+            $this->data[$file]['branches'][$functionName] = [];
+        }
+
+        if (!\array_key_exists($branchIndex, $this->data[$file]['branches'][$functionName])) {
+            $this->data[$file]['branches'][$functionName][$branchIndex] = [
+                'hit'        => 0,
+                'line_start' => 0,
+                'line_end'   => 0,
+                'tests'      => [],
+            ];
+        }
+
+        $this->data[$file]['branches'][$functionName][$branchIndex]['hit'] = \max(
+            $this->data[$file]['branches'][$functionName][$branchIndex]['hit'],
+            $hit
+        );
+    }
+
+    private function addCoverageBranchLineStart(
+        string $file,
+        string $functionName,
+        int $branchIndex,
+        int $lineStart
+    ): void {
+        $this->initializeFileCoverageData($file);
+
+        if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
+            $this->data[$file]['branches'][$functionName] = [];
+        }
+
+        if (!\array_key_exists($branchIndex, $this->data[$file]['branches'][$functionName])) {
+            $this->data[$file]['branches'][$functionName][$branchIndex] = [
+                'hit'        => 0,
+                'line_start' => 0,
+                'line_end'   => 0,
+                'tests'      => [],
+            ];
+        }
+
+        $this->data[$file]['branches'][$functionName][$branchIndex]['line_start'] = $lineStart;
+    }
+
+    private function addCoverageBranchLineEnd(
+        string $file,
+        string $functionName,
+        int $branchIndex,
+        int $lineEnd
+    ): void {
+        $this->initializeFileCoverageData($file);
+
+        if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
+            $this->data[$file]['branches'][$functionName] = [];
+        }
+
+        if (!\array_key_exists($branchIndex, $this->data[$file]['branches'][$functionName])) {
+            $this->data[$file]['branches'][$functionName][$branchIndex] = [
+                'hit'        => 0,
+                'line_start' => 0,
+                'line_end'   => 0,
+                'tests'      => [],
+            ];
+        }
+
+        $this->data[$file]['branches'][$functionName][$branchIndex]['line_end'] = $lineEnd;
+    }
+
+    private function addCoverageBranchTest(
+        string $file,
+        string $functionName,
+        int $branchIndex,
+        string $testId
+    ): void {
+        $this->initializeFileCoverageData($file);
+
+        if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
+            $this->data[$file]['branches'][$functionName] = [];
+        }
+
+        if (!\array_key_exists($branchIndex, $this->data[$file]['branches'][$functionName])) {
+            $this->data[$file]['branches'][$functionName][$branchIndex] = [
+                'hit'        => 0,
+                'line_start' => 0,
+                'line_end'   => 0,
+                'tests'      => [],
+            ];
+        }
+
+        if (!\in_array($testId, $this->data[$file]['branches'][$functionName][$branchIndex]['tests'], true)) {
+            $this->data[$file]['branches'][$functionName][$branchIndex]['tests'][] = $testId;
+        }
+    }
+
+    private function addCoveragePathHit(
+        string $file,
+        string $functionName,
+        int $pathId,
+        int $hit
+    ): void {
+        $this->initializeFileCoverageData($file);
+
+        if (!\array_key_exists($functionName, $this->data[$file]['paths'])) {
+            $this->data[$file]['paths'][$functionName] = [];
+        }
+
+        if (!\array_key_exists($pathId, $this->data[$file]['paths'][$functionName])) {
+            $this->data[$file]['paths'][$functionName][$pathId] = [
+                'hit'        => 0,
+                'path'       => [],
+            ];
+        }
+
+        $this->data[$file]['paths'][$functionName][$pathId]['hit'] = \max(
+            $this->data[$file]['paths'][$functionName][$pathId]['hit'],
+            $hit
+        );
     }
 
     /**
@@ -643,12 +826,15 @@ final class CodeCoverage
                 continue;
             }
 
-            $data[$uncoveredFile] = [];
+            $data[$uncoveredFile] = [
+                'lines'     => [],
+                'functions' => [],
+            ];
 
             $lines = \count(\file($uncoveredFile));
 
-            for ($i = 1; $i <= $lines; $i++) {
-                $data[$uncoveredFile][$i] = Driver::LINE_NOT_EXECUTED;
+            for ($line = 1; $line <= $lines; $line++) {
+                $data[$uncoveredFile]['lines'][$line] = Driver::LINE_NOT_EXECUTED;
             }
         }
 
@@ -852,10 +1038,10 @@ final class CodeCoverage
 
         $unintentionallyCoveredUnits = [];
 
-        foreach ($data as $file => $_data) {
-            foreach ($_data as $line => $flag) {
-                if ($flag === 1 && !isset($allowedLines[$file][$line])) {
-                    $unintentionallyCoveredUnits[] = $this->wizard->lookup($file, $line);
+        foreach ($data as $file => $fileData) {
+            foreach ($fileData['lines'] as $lineNumber => $flag) {
+                if ($flag === 1 && !isset($allowedLines[$file][$lineNumber])) {
+                    $unintentionallyCoveredUnits[] = $this->wizard->lookup($file, $lineNumber);
                 }
             }
         }
