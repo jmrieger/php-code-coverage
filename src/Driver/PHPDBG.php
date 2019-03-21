@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * This file is part of the php-code-coverage package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
@@ -97,6 +97,13 @@ final class PHPDBG implements Driver
                     $sourceLines[$file][$lineNo] = self::LINE_EXECUTED;
                 }
             }
+        }
+
+        foreach ($sourceLines as $file => $lines) {
+            $sourceLines[$file] = [
+                'lines' => $lines,
+                'functions' => []
+            ];
         }
 
         return $sourceLines;
