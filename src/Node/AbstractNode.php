@@ -310,6 +310,11 @@ abstract class AbstractNode implements \Countable
     abstract public function getPaths(): array;
 
     /**
+     * Returns the branches of this node.
+     */
+    abstract public function getBranches(): array;
+
+    /**
      * Returns the number of executable lines.
      */
     abstract public function getNumExecutableLines(): int;
@@ -368,4 +373,14 @@ abstract class AbstractNode implements \Countable
      * Returns the number of tested paths.
      */
     abstract public function getNumTestedPaths(): int;
+
+    /**
+     * Returns the number of branches.
+     */
+    abstract public function getNumBranches(): int;
+
+    /**
+     * Returns the number of tested branches.
+     */
+    abstract public function getNumTestedBranches(): int;
 }
