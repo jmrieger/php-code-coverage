@@ -135,9 +135,11 @@ final class CodeCoverage
     private $report;
 
     /**
+     * Determine whether to display branch coverage
+     *
      * @var bool
      */
-    private $determineBranchCoverage;
+    private $determineBranchCoverage = false;
 
     /**
      * @throws RuntimeException
