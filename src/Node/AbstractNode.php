@@ -181,6 +181,20 @@ abstract class AbstractNode implements \Countable
     }
 
     /**
+     * Returns the percentage of paths that have been tested.
+     *
+     * @return int|string
+     */
+    public function getPathsTestedPercent(bool $asString = true)
+    {
+        return Util::percent(
+            $this->getNumTestedPaths(),
+            $this->getNumPaths(),
+            $asString
+        );
+    }
+
+    /**
      * Returns the percentage of functions and methods that has been tested.
      *
      * @return int|string
@@ -277,6 +291,11 @@ abstract class AbstractNode implements \Countable
     abstract public function getLinesOfCode(): array;
 
     /**
+     * Returns the paths of this node.
+     */
+    abstract public function getPaths(): array;
+
+    /**
      * Returns the number of executable lines.
      */
     abstract public function getNumExecutableLines(): int;
@@ -325,4 +344,14 @@ abstract class AbstractNode implements \Countable
      * Returns the number of tested functions.
      */
     abstract public function getNumTestedFunctions(): int;
+
+    /**
+     * Returns the number of paths.
+     */
+    abstract public function getNumPaths(): int;
+
+    /**
+     * Returns the number of tested paths.
+     */
+    abstract public function getNumTestedPaths(): int;
 }
