@@ -185,11 +185,25 @@ abstract class AbstractNode implements \Countable
      *
      * @return int|string
      */
-    public function getPathsTestedPercent(bool $asString = true)
+    public function getTestedPathsPercent(bool $asString = true)
     {
         return Util::percent(
             $this->getNumTestedPaths(),
             $this->getNumPaths(),
+            $asString
+        );
+    }
+
+    /**
+     * Returns the percentage of branches that have been tested.
+     *
+     * @return int|string
+     */
+    public function getTestedBranchesPercent(bool $asString = true)
+    {
+        return Util::percent(
+            $this->getNumTestedBranches(),
+            $this->getNumBranches(),
             $asString
         );
     }
