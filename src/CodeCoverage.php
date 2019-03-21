@@ -346,15 +346,36 @@ final class CodeCoverage
 
         $this->tests[$id] = ['size' => $size, 'status' => $status];
 
-        foreach ($data as $file => $lines) {
+        foreach ($data as $file => $fileData) {
             if (!$this->filter->isFile($file)) {
                 continue;
             }
 
-            foreach ($lines as $k => $v) {
-                if ($v === Driver::LINE_EXECUTED) {
-                    if (empty($this->data[$file][$k]) || !\in_array($id, $this->data[$file][$k])) {
-                        $this->data[$file][$k][] = $id;
+            foreach ($fileData['lines'] as $line => $lineCoverage) {
+                if ($lineCoverage === Driver::LINE_EXECUTED) {
+                    if ($this->data[$file]['lines'][$line] === null) {
+                        $this->data[$file]['lines'][$line] = [
+                            'pathCovered' => false,
+                            'tests'       => [$id],
+                        ];
+                    } elseif (!\in_array($id, $this->data[$file]['lines'][$line]['tests'], true)) {
+                        $this->data[$file]['lines'][$line]['tests'][] = [$id];
+                    }
+                }
+            }
+
+            foreach ($fileData['functions'] as $function => $functionCoverage) {
+                foreach ($functionCoverage['branches'] as $branch => $branchCoverage) {
+                    if ($branchCoverage['hit'] === 1) {
+                        $this->data[$file]['branches'][$function][$branch]['hit'] = 1;
+                        if (!\in_array($id, $this->data[$file]['branches'][$function][$branch]['tests'], true)) {
+                            $this->data[$file]['branches'][$function][$branch]['tests'][] = $id;
+                        }
+                    }
+                }
+                foreach ($functionCoverage['paths'] as $path => $pathCoverage) {
+                    if ($pathCoverage['hit'] === 1 && $this->data[$file]['paths'][$function][$path]['hit'] === 0) {
+                        $this->data[$file]['paths'][$function][$path]['hit'] = 1;
                     }
                 }
             }
@@ -374,10 +395,11 @@ final class CodeCoverage
             \array_merge($this->filter->getWhitelistedFiles(), $that->filter()->getWhitelistedFiles())
         );
 
-        foreach ($that->data as $file => $lines) {
+        // I don't know how / why this works, but it should be refactored to ->getData()
+        foreach ($that->getData() as $file => $fileData) {
             if (!isset($this->data[$file])) {
                 if (!$this->filter->isFiltered($file)) {
-                    $this->data[$file] = $lines;
+                    $this->data[$file] = $fileData;
                 }
 
                 continue;
@@ -386,20 +408,23 @@ final class CodeCoverage
             // we should compare the lines if any of two contains data
             $compareLineNumbers = \array_unique(
                 \array_merge(
-                    \array_keys($this->data[$file]),
-                    \array_keys($that->data[$file])
+                    \array_keys($this->data[$file]['lines']),
+                    \array_keys($that->data[$file]['lines']) // can this be $fileData?
                 )
             );
 
             foreach ($compareLineNumbers as $line) {
-                $thatPriority = $this->getLinePriority($that->data[$file], $line);
-                $thisPriority = $this->getLinePriority($this->data[$file], $line);
+                $thatPriority = $this->getLinePriority($that->data[$file]['lines'], $line);
+                $thisPriority = $this->getLinePriority($this->data[$file]['lines'], $line);
 
                 if ($thatPriority > $thisPriority) {
-                    $this->data[$file][$line] = $that->data[$file][$line];
-                } elseif ($thatPriority === $thisPriority && \is_array($this->data[$file][$line])) {
-                    $this->data[$file][$line] = \array_unique(
-                        \array_merge($this->data[$file][$line], $that->data[$file][$line])
+                    $this->data[$file]['lines'][$line] = $that->data[$file]['lines'][$line];
+                } elseif ($thatPriority === $thisPriority && \is_array($this->data[$file]['lines'][$line])) {
+                    if ($line['pathCovered'] === true) {
+                        $this->data[$file]['lines']['line']['pathCovered'] = $line['pathCovered'];
+                    }
+                    $this->data[$file]['lines'][$line] = \array_unique(
+                        \array_merge($this->data[$file]['lines'][$line], $that->data[$file]['lines'][$line])
                     );
                 }
             }
