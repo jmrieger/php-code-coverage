@@ -99,6 +99,13 @@ final class PHPDBG implements Driver
             }
         }
 
+        foreach ($sourceLines as $file => $lines) {
+            $sourceLines[$file] = [
+                'lines'     => $lines,
+                'functions' => [],
+            ];
+        }
+
         return $sourceLines;
     }
 }
