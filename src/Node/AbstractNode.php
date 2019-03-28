@@ -181,6 +181,34 @@ abstract class AbstractNode implements \Countable
     }
 
     /**
+     * Returns the percentage of paths that have been tested.
+     *
+     * @return int|string
+     */
+    public function getTestedPathsPercent(bool $asString = true)
+    {
+        return Util::percent(
+            $this->getNumTestedPaths(),
+            $this->getNumPaths(),
+            $asString
+        );
+    }
+
+    /**
+     * Returns the percentage of branches that have been tested.
+     *
+     * @return int|string
+     */
+    public function getTestedBranchesPercent(bool $asString = true)
+    {
+        return Util::percent(
+            $this->getNumTestedBranches(),
+            $this->getNumBranches(),
+            $asString
+        );
+    }
+
+    /**
      * Returns the percentage of functions and methods that has been tested.
      *
      * @return int|string
@@ -277,6 +305,16 @@ abstract class AbstractNode implements \Countable
     abstract public function getLinesOfCode(): array;
 
     /**
+     * Returns the paths of this node.
+     */
+    abstract public function getPaths(): array;
+
+    /**
+     * Returns the branches of this node.
+     */
+    abstract public function getBranches(): array;
+
+    /**
      * Returns the number of executable lines.
      */
     abstract public function getNumExecutableLines(): int;
@@ -325,4 +363,24 @@ abstract class AbstractNode implements \Countable
      * Returns the number of tested functions.
      */
     abstract public function getNumTestedFunctions(): int;
+
+    /**
+     * Returns the number of paths.
+     */
+    abstract public function getNumPaths(): int;
+
+    /**
+     * Returns the number of tested paths.
+     */
+    abstract public function getNumTestedPaths(): int;
+
+    /**
+     * Returns the number of branches.
+     */
+    abstract public function getNumBranches(): int;
+
+    /**
+     * Returns the number of tested branches.
+     */
+    abstract public function getNumTestedBranches(): int;
 }
