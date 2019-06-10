@@ -355,7 +355,7 @@ final class CodeCoverage
 
             foreach ($fileData['lines'] as $line => $lineCoverage) {
                 if ($lineCoverage === Driver::LINE_EXECUTED) {
-                    $this->addCoverageLinePathCovered($file, $line, false);
+                    $this->addCoverageLinePathCovered($file, $line, true);
                     $this->addCoverageLineTest($file, $line, $id);
                 }
             }
@@ -837,6 +837,7 @@ final class CodeCoverage
             for ($line = 1; $line <= $lines; $line++) {
                 $data[$uncoveredFile]['lines'][$line] = Driver::LINE_NOT_EXECUTED;
             }
+            // @todo - do the same here with functions and paths
         }
 
         $this->append($data, 'UNCOVERED_FILES_FROM_WHITELIST');
