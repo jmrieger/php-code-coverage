@@ -84,12 +84,14 @@ final class Text
         $report = $coverage->getReport();
 
         $colors = [
-            'header'  => '',
-            'classes' => '',
-            'methods' => '',
-            'lines'   => '',
-            'reset'   => '',
-            'eol'     => '',
+            'header'   => '',
+            'classes'  => '',
+            'methods'  => '',
+            'lines'    => '',
+            'branches' => '',
+            'paths'    => '',
+            'reset'    => '',
+            'eol'      => '',
         ];
 
         if ($showColors) {
@@ -108,13 +110,23 @@ final class Text
                 $report->getNumExecutableLines()
             );
 
+            $colors['branches']   = $this->getCoverageColor(
+                $report->getNumTestedBranches(),
+                $report->getNumBranches()
+            );
+
+            $colors['paths']   = $this->getCoverageColor(
+                $report->getNumTestedPaths(),
+                $report->getNumPaths()
+            );
+
             $colors['reset']  = self::COLOR_RESET;
             $colors['header'] = self::COLOR_HEADER;
             $colors['eol']    = self::COLOR_EOL;
         }
 
         $classes = \sprintf(
-            '  Classes: %6s (%d/%d)',
+            '  Classes:  %6s (%d/%d)',
             Util::percent(
                 $report->getNumTestedClassesAndTraits(),
                 $report->getNumClassesAndTraits(),
@@ -125,7 +137,7 @@ final class Text
         );
 
         $methods = \sprintf(
-            '  Methods: %6s (%d/%d)',
+            '  Methods:  %6s (%d/%d)',
             Util::percent(
                 $report->getNumTestedMethods(),
                 $report->getNumMethods(),
@@ -136,7 +148,7 @@ final class Text
         );
 
         $lines = \sprintf(
-            '  Lines:   %6s (%d/%d)',
+            '  Lines:    %6s (%d/%d)',
             Util::percent(
                 $report->getNumExecutedLines(),
                 $report->getNumExecutableLines(),
@@ -144,6 +156,28 @@ final class Text
             ),
             $report->getNumExecutedLines(),
             $report->getNumExecutableLines()
+        );
+
+        $branches = \sprintf(
+            '  Branches: %6s (%d/%d)',
+            Util::percent(
+                $report->getNumTestedBranches(),
+                $report->getNumBranches(),
+                true
+            ),
+            $report->getNumTestedBranches(),
+            $report->getNumBranches()
+        );
+
+        $paths = \sprintf(
+            '  Paths:    %6s (%d/%d)',
+            Util::percent(
+                $report->getNumTestedPaths(),
+                $report->getNumPaths(),
+                true
+            ),
+            $report->getNumTestedPaths(),
+            $report->getNumPaths()
         );
 
         $padding = \max(\array_map('strlen', [$classes, $methods, $lines]));
@@ -166,6 +200,8 @@ final class Text
         $output .= $this->format($colors['classes'], $padding, $classes);
         $output .= $this->format($colors['methods'], $padding, $methods);
         $output .= $this->format($colors['lines'], $padding, $lines);
+        $output .= $this->format($colors['branches'], $padding, $branches);
+        $output .= $this->format($colors['paths'], $padding, $paths);
 
         if ($this->showOnlySummary) {
             return $output . \PHP_EOL;
