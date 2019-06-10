@@ -455,10 +455,10 @@ final class File extends AbstractNode
                 $this->calculatePathsAggregate($functionBranches, $numExecutableBranches, $numExecutedBranches);
 
                 $function['executableBranches'] = $numExecutableBranches;
-                $this->numPaths += $numExecutableBranches;
+                $this->numBranches += $numExecutableBranches;
 
                 $function['executedBranches'] = $numExecutedBranches;
-                $this->numTestedPaths += $numExecutedBranches;
+                $this->numTestedBranches += $numExecutedBranches;
             }
         }
     }
@@ -539,7 +539,7 @@ final class File extends AbstractNode
 
                     $method['executableBranches'] = $numExecutableBranches;
                     $classOrTrait['executableBranches'] += $numExecutableBranches;
-                    $this->numPaths += $numExecutableBranches;
+                    $this->numBranches += $numExecutableBranches;
 
                     $method['executedBranches'] = $numExexutedBranches;
                     $classOrTrait['executedBranches'] += $numExexutedBranches;
