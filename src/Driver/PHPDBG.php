@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  * This file is part of the php-code-coverage package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
@@ -101,8 +101,8 @@ final class PHPDBG implements Driver
 
         foreach ($sourceLines as $file => $lines) {
             $sourceLines[$file] = [
-                'lines' => $lines,
-                'functions' => []
+                'lines'     => $lines,
+                'functions' => [],
             ];
         }
 

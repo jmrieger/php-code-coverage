@@ -89,6 +89,7 @@ final class Xdebug implements Driver
             if (!isset($data[$file]['lines'])) {
                 $data[$file] = ['lines' => $data[$file]];
             }
+
             if (!isset($data[$file]['functions'])) {
                 $data[$file]['functions'] = [];
             }
