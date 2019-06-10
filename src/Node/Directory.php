@@ -504,7 +504,7 @@ final class Directory extends AbstractNode implements \IteratorAggregate
             $this->numPaths = 0;
 
             foreach ($this->children as $child) {
-                $this->numMethods += $child->getNumPaths();
+                $this->numPaths += $child->getNumPaths();
             }
         }
 
