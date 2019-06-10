@@ -20,7 +20,7 @@ final class Util
     public static function percent(float $a, float $b, bool $asString = false, bool $fixedWidth = false)
     {
         if ($asString && $b == 0) {
-            return '';
+            return $fixedWidth ? '       ' : '';
         }
 
         $percent = 100;
