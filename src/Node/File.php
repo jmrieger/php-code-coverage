@@ -90,6 +90,26 @@ final class File extends AbstractNode
     private $numTestedFunctions;
 
     /**
+     * @var int
+     */
+    private $numPaths = 0;
+
+    /**
+     * @var int
+     */
+    private $numTestedPaths = 0;
+
+    /**
+     * @var int
+     */
+    private $numBranches = 0;
+
+    /**
+     * @var int
+     */
+    private $numTestedBranches = 0;
+
+    /**
      * @var bool
      */
     private $cacheTokens;
@@ -607,5 +627,53 @@ final class File extends AbstractNode
             'crap'            => 0,
             'link'            => $link . $method['startLine'],
         ];
+    }
+
+    /**
+     * Returns the paths of this node.
+     */
+    public function getPaths(): array
+    {
+        // TODO: Implement getPaths() method.
+    }
+
+    /**
+     * Returns the branches of this node.
+     */
+    public function getBranches(): array
+    {
+        // TODO: Implement getBranches() method.
+    }
+
+    /**
+     * Returns the number of paths.
+     */
+    public function getNumPaths(): int
+    {
+        // TODO: Implement getNumPaths() method.
+    }
+
+    /**
+     * Returns the number of tested paths.
+     */
+    public function getNumTestedPaths(): int
+    {
+        // TODO: Implement getNumTestedPaths() method.
+    }
+
+    /**
+     * Returns the number of branches.
+     */
+    public function getNumBranches(): int
+    {
+        // TODO: Implement getNumBranches() method.
+    }
+
+    /**
+     * Returns the number of tested branches.
+     */
+    public function getNumTestedBranches(): int
+    {
+        // TODO: Implement getNumTestedBranches() method.
     }
 }
