@@ -545,21 +545,6 @@ final class File extends AbstractNode
                     $classOrTrait['executedBranches'] += $numExexutedBranches;
                     $this->numTestedBranches += $numExexutedBranches;
                 }
-
-                // @todo - Are these needed for both path and branches, or just paths?
-                if ($method['executableLines'] > 0) {
-                    $method['coverage'] = ($method['executedLines'] /
-                            $method['executableLines']) * 100;
-                } else {
-                    $method['coverage'] = 100;
-                }
-
-                $method['crap'] = $this->crap(
-                    $method['ccn'],
-                    $method['coverage']
-                );
-
-                $classOrTrait['ccn'] += $method['ccn'];
             }
         }
         unset($method);
