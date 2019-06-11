@@ -66,7 +66,7 @@ final class Xdebug implements Driver
         }
 
         if ($this->determineBranchCoverage) {
-            $flag = XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE | XDEBUG_CC_BRANCH_CHECK;
+            $flag |= XDEBUG_CC_BRANCH_CHECK;
         }
 
         \xdebug_start_code_coverage($flag);
