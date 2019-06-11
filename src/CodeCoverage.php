@@ -360,16 +360,18 @@ final class CodeCoverage
                 }
             }
 
-            foreach ($fileData['functions'] as $function => $functionCoverage) {
-                foreach ($functionCoverage['branches'] as $branch => $branchCoverage) {
-                    if (($branchCoverage['hit'] ?? 0) === 1) {
-                        $this->addCoverageBranchHit($file, $function, $branch, $branchCoverage['hit'] ?? 0);
-                        $this->addCoverageBranchTest($file, $function, $branch, $id);
+            if ($this->determineBranchCoverage) {
+                foreach ($fileData['functions'] as $function => $functionCoverage) {
+                    foreach ($functionCoverage['branches'] as $branch => $branchCoverage) {
+                        if (($branchCoverage['hit'] ?? 0) === 1) {
+                            $this->addCoverageBranchHit($file, $function, $branch, $branchCoverage['hit'] ?? 0);
+                            $this->addCoverageBranchTest($file, $function, $branch, $id);
+                        }
                     }
-                }
 
-                foreach ($functionCoverage['paths'] as $path => $pathCoverage) {
-                    $this->addCoveragePathHit($file, $function, $path, $pathCoverage['hit'] ?? 0);
+                    foreach ($functionCoverage['paths'] as $path => $pathCoverage) {
+                        $this->addCoveragePathHit($file, $function, $path, $pathCoverage['hit'] ?? 0);
+                    }
                 }
             }
         }
@@ -622,20 +624,21 @@ final class CodeCoverage
                 } else {
                     $this->addCoverageLinePathCovered($file, $lineNumber, false);
                 }
-
             }
 
-            foreach ($fileData['functions'] as $functionName => $functionData) {
-                $this->data[$file]['paths'][$functionName] = $functionData['paths'];
+            if ($this->determineBranchCoverage) {
+                foreach ($fileData['functions'] as $functionName => $functionData) {
+                    $this->data[$file]['paths'][$functionName] = $functionData['paths'];
 
-                foreach ($functionData['branches'] as $branchIndex => $branchData) {
-                    $this->addCoverageBranchHit($file, $functionName, $branchIndex, $branchData['hit']);
-                    $this->addCoverageBranchLineStart($file, $functionName, $branchIndex, $branchData['line_start']);
-                    $this->addCoverageBranchLineEnd($file, $functionName, $branchIndex, $branchData['line_end']);
+                    foreach ($functionData['branches'] as $branchIndex => $branchData) {
+                        $this->addCoverageBranchHit($file, $functionName, $branchIndex, $branchData['hit']);
+                        $this->addCoverageBranchLineStart($file, $functionName, $branchIndex, $branchData['line_start']);
+                        $this->addCoverageBranchLineEnd($file, $functionName, $branchIndex, $branchData['line_end']);
 
-                    for ($curLine = $branchData['line_start']; $curLine < $branchData['line_end']; $curLine++) {
-                        if (isset($this->data[$file]['lines'][$curLine])) {
-                            $this->addCoverageLinePathCovered($file, $curLine, (bool) $branchData['hit']);
+                        for ($curLine = $branchData['line_start']; $curLine < $branchData['line_end']; $curLine++) {
+                            if (isset($this->data[$file]['lines'][$curLine])) {
+                                $this->addCoverageLinePathCovered($file, $curLine, (bool) $branchData['hit']);
+                            }
                         }
                     }
                 }
@@ -646,11 +649,17 @@ final class CodeCoverage
     private function initializeFileCoverageData(string $file): void
     {
         if (!isset($this->data[$file]) && $this->filter->isFile($file)) {
-            $this->data[$file] = [
-                'lines'    => [],
-                'branches' => [],
-                'paths'    => [],
-            ];
+            $default = ['lines' => []];
+
+            if ($this->determineBranchCoverage) {
+                $default = [
+                    'lines'    => [],
+                    'branches' => [],
+                    'paths'    => [],
+                ];
+            }
+
+            $this->data[$file] = $default;
         }
     }
 
@@ -689,6 +698,9 @@ final class CodeCoverage
     private function addCoverageBranchHit(string $file, string $functionName, int $branchIndex, int $hit): void
     {
         $this->initializeFileCoverageData($file);
+        if (!$this->determineBranchCoverage) {
+            return;
+        }
 
         if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
             $this->data[$file]['branches'][$functionName] = [];
@@ -717,6 +729,10 @@ final class CodeCoverage
     ): void {
         $this->initializeFileCoverageData($file);
 
+        if (!$this->determineBranchCoverage) {
+            return;
+        }
+
         if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
             $this->data[$file]['branches'][$functionName] = [];
         }
@@ -741,6 +757,10 @@ final class CodeCoverage
     ): void {
         $this->initializeFileCoverageData($file);
 
+        if (!$this->determineBranchCoverage) {
+            return;
+        }
+
         if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
             $this->data[$file]['branches'][$functionName] = [];
         }
@@ -764,6 +784,10 @@ final class CodeCoverage
         string $testId
     ): void {
         $this->initializeFileCoverageData($file);
+
+        if (!$this->determineBranchCoverage) {
+            return;
+        }
 
         if (!\array_key_exists($functionName, $this->data[$file]['branches'])) {
             $this->data[$file]['branches'][$functionName] = [];
@@ -790,6 +814,10 @@ final class CodeCoverage
         int $hit
     ): void {
         $this->initializeFileCoverageData($file);
+
+        if (!$this->determineBranchCoverage) {
+            return;
+        }
 
         if (!\array_key_exists($functionName, $this->data[$file]['paths'])) {
             $this->data[$file]['paths'][$functionName] = [];
