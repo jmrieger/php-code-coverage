@@ -619,7 +619,10 @@ final class CodeCoverage
             foreach ($fileData['lines'] as $lineNumber => $flag) {
                 if ($flag === Driver::LINE_NOT_EXECUTABLE) {
                     $this->data[$file]['lines'][$lineNumber] = null;
+                } else {
+                    $this->addCoverageLinePathCovered($file, $lineNumber, false);
                 }
+
             }
 
             foreach ($fileData['functions'] as $functionName => $functionData) {
@@ -1190,9 +1193,9 @@ final class CodeCoverage
                     continue;
                 }
 
-                foreach (\array_keys($fileCoverage) as $key) {
-                    if ($fileCoverage[$key] === Driver::LINE_EXECUTED) {
-                        $fileCoverage[$key] = Driver::LINE_NOT_EXECUTED;
+                foreach (\array_keys($fileCoverage['lines']) as $key) {
+                    if ($fileCoverage['lines'][$key] === Driver::LINE_EXECUTED) {
+                        $fileCoverage['lines'][$key] = Driver::LINE_NOT_EXECUTED;
                     }
                 }
 
