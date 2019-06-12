@@ -9,6 +9,8 @@
  */
 namespace SebastianBergmann\CodeCoverage\Driver;
 
+use SebastianBergmann\CodeCoverage\RuntimeException;
+
 /**
  * Driver for PCOV code coverage functionality.
  *
@@ -16,6 +18,14 @@ namespace SebastianBergmann\CodeCoverage\Driver;
  */
 final class PCOV implements Driver
 {
+    /**
+     * Specify that branch coverage should be included with collected code coverage information.
+     */
+    public function setDetermineBranchCoverage(bool $flag): void
+    {
+        throw new RuntimeException('Branch coverage is not supported in PHPDBG');
+    }
+
     /**
      * Start collection of code coverage information.
      */
