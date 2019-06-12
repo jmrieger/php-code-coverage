@@ -8,10 +8,6 @@
         <directory suffix="Test.php">tests/tests</directory>
     </testsuite>
 
-    <logging>
-        <log type="coverage-clover" target="./build/clover.xml" />
-    </logging>
-
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>
