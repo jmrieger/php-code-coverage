@@ -619,11 +619,13 @@ final class CodeCoverage
             foreach ($fileData['lines'] as $lineNumber => $flag) {
                 if ($flag === Driver::LINE_NOT_EXECUTABLE) {
                     $this->data[$file]['lines'][$lineNumber] = null;
+                } else {
+                    $this->addCoverageLinePathCovered($file, $lineNumber, false);
                 }
+
             }
 
             foreach ($fileData['functions'] as $functionName => $functionData) {
-                // @todo - should this have a helper to merge covered paths?
                 $this->data[$file]['paths'][$functionName] = $functionData['paths'];
 
                 foreach ($functionData['branches'] as $branchIndex => $branchData) {
@@ -837,7 +839,6 @@ final class CodeCoverage
             for ($line = 1; $line <= $lines; $line++) {
                 $data[$uncoveredFile]['lines'][$line] = Driver::LINE_NOT_EXECUTED;
             }
-            // @todo - do the same here with functions and paths
         }
 
         $this->append($data, 'UNCOVERED_FILES_FROM_WHITELIST');
@@ -1190,9 +1191,9 @@ final class CodeCoverage
                     continue;
                 }
 
-                foreach (\array_keys($fileCoverage) as $key) {
-                    if ($fileCoverage[$key] === Driver::LINE_EXECUTED) {
-                        $fileCoverage[$key] = Driver::LINE_NOT_EXECUTED;
+                foreach (\array_keys($fileCoverage['lines']) as $key) {
+                    if ($fileCoverage['lines'][$key] === Driver::LINE_EXECUTED) {
+                        $fileCoverage['lines'][$key] = Driver::LINE_NOT_EXECUTED;
                     }
                 }
 
