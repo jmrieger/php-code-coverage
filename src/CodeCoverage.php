@@ -625,7 +625,6 @@ final class CodeCoverage
             }
 
             foreach ($fileData['functions'] as $functionName => $functionData) {
-                // @todo - should this have a helper to merge covered paths?
                 $this->data[$file]['paths'][$functionName] = $functionData['paths'];
 
                 foreach ($functionData['branches'] as $branchIndex => $branchData) {
@@ -839,7 +838,6 @@ final class CodeCoverage
             for ($line = 1; $line <= $lines; $line++) {
                 $data[$uncoveredFile]['lines'][$line] = Driver::LINE_NOT_EXECUTED;
             }
-            // @todo - do the same here with functions and paths
         }
 
         $this->append($data, 'UNCOVERED_FILES_FROM_WHITELIST');

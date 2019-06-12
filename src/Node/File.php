@@ -382,16 +382,21 @@ final class File extends AbstractNode
         unset($tokens);
 
         foreach (\range(1, $this->linesOfCode['loc']) as $lineNumber) {
-            if (isset($this->coverageData['lines'][$lineNumber])) {
-                foreach ($this->codeUnitsByLine[$lineNumber] as &$codeUnit) {
-                    $codeUnit['executableLines']++;
+            // Check to see if we've identified this line as executed, not executed, or not executable
+            if (\array_key_exists($lineNumber, $this->coverageData['lines'])) {
+                // If the element is null, that indicates this line is not executable
+                if ($this->coverageData['lines'][$lineNumber] !== null) {
+                    foreach ($this->codeUnitsByLine[$lineNumber] as &$codeUnit) {
+                        $codeUnit['executableLines']++;
+                    }
+
+                    unset($codeUnit);
+
+                    $this->numExecutableLines++;
                 }
 
-                unset($codeUnit);
 
-                $this->numExecutableLines++;
-
-                if (\count($this->coverageData['lines'][$lineNumber]) > 0) {
+                if ($this->coverageData['lines'][$lineNumber]['pathCovered'] === true) {
                     foreach ($this->codeUnitsByLine[$lineNumber] as &$codeUnit) {
                         $codeUnit['executedLines']++;
                     }
@@ -477,6 +482,19 @@ final class File extends AbstractNode
         foreach ($classOrTrait['methods'] as &$method) {
             $methodName = $method['methodName'];
 
+            if ($method['executableLines'] > 0) {
+                $method['coverage'] = ($method['executedLines'] / $method['executableLines']) * 100;
+            } else {
+                $method['coverage'] = 100;
+            }
+
+            $method['crap'] = $this->crap(
+                $method['ccn'],
+                $method['coverage']
+            );
+
+            $classOrTrait['ccn'] += $method['ccn'];
+
             if (isset($this->coverageData['paths'])) {
                 $methodCoveragePath = $methodName;
 
@@ -504,19 +522,6 @@ final class File extends AbstractNode
                     $this->numTestedPaths += $numExexutedPaths;
                 }
 
-                if ($method['executableLines'] > 0) {
-                    $method['coverage'] = ($method['executedLines'] /
-                            $method['executableLines']) * 100;
-                } else {
-                    $method['coverage'] = 100;
-                }
-
-                $method['crap'] = $this->crap(
-                    $method['ccn'],
-                    $method['coverage']
-                );
-
-                $classOrTrait['ccn'] += $method['ccn'];
             }
 
             if (isset($this->coverageData['branches'])) {
