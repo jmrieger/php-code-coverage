@@ -52,6 +52,16 @@ final class Directory extends AbstractNode implements \IteratorAggregate
     private $linesOfCode;
 
     /**
+     * @var array
+     */
+    private $paths;
+
+    /**
+     * @var array
+     */
+    private $branches;
+
+    /**
      * @var int
      */
     private $numFiles = -1;
@@ -107,6 +117,26 @@ final class Directory extends AbstractNode implements \IteratorAggregate
     private $numTestedFunctions = -1;
 
     /**
+     * @var int
+     */
+    private $numPaths = -1;
+
+    /**
+     * @var int
+     */
+    private $numTestedPaths = -1;
+
+    /**
+     * @var int
+     */
+    private $numBranches = -1;
+
+    /**
+     * @var int
+     */
+    private $numTestedBranches = -1;
+
+    /**
      * Returns the number of files in/under this node.
      */
     public function count(): int
@@ -160,6 +190,8 @@ final class Directory extends AbstractNode implements \IteratorAggregate
 
         $this->numExecutableLines = -1;
         $this->numExecutedLines   = -1;
+        $this->numPaths           = -1;
+        $this->numTestedPaths     = -1;
 
         return $file;
     }
@@ -423,5 +455,107 @@ final class Directory extends AbstractNode implements \IteratorAggregate
         }
 
         return $this->numTestedFunctions;
+    }
+
+    /**
+     * Returns the paths of this node.
+     */
+    public function getPaths(): array
+    {
+        if ($this->paths === null) {
+            $this->paths = [];
+
+            foreach ($this->children as $child) {
+                $this->paths = \array_merge(
+                    $this->paths,
+                    $child->getPaths()
+                );
+            }
+        }
+
+        return $this->paths;
+    }
+
+    /**
+     * Returns the branches of this node.
+     */
+    public function getBranches(): array
+    {
+        if ($this->branches === null) {
+            $this->branches = [];
+
+            foreach ($this->children as $child) {
+                $this->branches = \array_merge(
+                    $this->branches,
+                    $child->getBranches()
+                );
+            }
+        }
+
+        return $this->branches;
+    }
+
+    /**
+     * Returns the number of paths.
+     */
+    public function getNumPaths(): int
+    {
+        if ($this->numPaths === -1) {
+            $this->numPaths = 0;
+
+            foreach ($this->children as $child) {
+                $this->numPaths += $child->getNumPaths();
+            }
+        }
+
+        return $this->numPaths;
+    }
+
+    /**
+     * Returns the number of tested paths.
+     */
+    public function getNumTestedPaths(): int
+    {
+        if ($this->numTestedPaths === -1) {
+            $this->numTestedPaths = 0;
+
+            foreach ($this->children as $child) {
+                $this->numTestedPaths += $child->getNumTestedPaths();
+            }
+        }
+
+        return $this->numTestedPaths;
+    }
+
+    /**
+     * Returns the number of branches.
+     */
+    public function getNumBranches(): int
+    {
+        if ($this->numBranches === -1) {
+            $this->numBranches = 0;
+
+            foreach ($this->children as $child) {
+                $this->numBranches += $child->getNumBranches();
+            }
+        }
+
+        return $this->numBranches;
+    }
+
+    /**
+     * Returns the number of tested branches.
+     */
+    public function getNumTestedBranches(): int
+    {
+        if ($this->numTestedBranches === -1) {
+            $this->numTestedBranches = 0;
+
+            foreach ($this->children as $child) {
+                $this->numTestedBranches += $child->getNumTestedBranches();
+            }
+        }
+
+        return $this->numTestedBranches;
     }
 }
