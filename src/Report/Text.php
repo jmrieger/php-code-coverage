@@ -73,15 +73,14 @@ final class Text
     /**
      * @var bool
      */
-    private $determineBranchCoverage;
+    private $determineBranchCoverage = false;
 
-    public function __construct(int $lowUpperBound = 50, int $highLowerBound = 90, bool $showUncoveredFiles = false, bool $showOnlySummary = false, bool $determineBranchCoverage = false)
+    public function __construct(int $lowUpperBound = 50, int $highLowerBound = 90, bool $showUncoveredFiles = false, bool $showOnlySummary = false)
     {
-        $this->lowUpperBound           = $lowUpperBound;
-        $this->highLowerBound          = $highLowerBound;
-        $this->showUncoveredFiles      = $showUncoveredFiles;
-        $this->showOnlySummary         = $showOnlySummary;
-        $this->determineBranchCoverage = $determineBranchCoverage;
+        $this->lowUpperBound      = $lowUpperBound;
+        $this->highLowerBound     = $highLowerBound;
+        $this->showUncoveredFiles = $showUncoveredFiles;
+        $this->showOnlySummary    = $showOnlySummary;
     }
 
     public function process(CodeCoverage $coverage, bool $showColors = false): string
@@ -349,6 +348,11 @@ final class Text
         }
 
         return $output . \PHP_EOL;
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     private function getCoverageColor(int $numberOfCoveredElements, int $totalNumberOfElements): string
