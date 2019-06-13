@@ -37,11 +37,26 @@ final class Method
         }
     }
 
-    public function setTotals(string $executable, string $executed, string $coverage): void
-    {
-        $this->contextNode->setAttribute('executable', $executable);
-        $this->contextNode->setAttribute('executed', $executed);
+    public function setTotals(
+        string $executableLines,
+        string $executedLines,
+        string $coverage
+    ): void {
+        $this->contextNode->setAttribute('executable', $executableLines);
+        $this->contextNode->setAttribute('executed', $executedLines);
         $this->contextNode->setAttribute('coverage', $coverage);
+    }
+
+    public function setPathTotals(string $executablePaths, string $executedPaths): void
+    {
+        $this->contextNode->setAttribute('executablePaths', $executablePaths);
+        $this->contextNode->setAttribute('executedPaths', $executedPaths);
+    }
+
+    public function setBranchTotals(string $executableBranches, string $executedBranches): void
+    {
+        $this->contextNode->setAttribute('executableBranches', $executableBranches);
+        $this->contextNode->setAttribute('executedBranches', $executedBranches);
     }
 
     public function setCrap(string $crap): void

@@ -12,8 +12,9 @@ namespace SebastianBergmann\CodeCoverage\Report;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Node\File;
 use SebastianBergmann\CodeCoverage\RuntimeException;
+use SebastianBergmann\CodeCoverage\Report\Reporter;
 
-final class Crap4j
+final class Crap4j extends Reporter
 {
     /**
      * @var int

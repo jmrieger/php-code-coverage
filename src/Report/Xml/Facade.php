@@ -13,11 +13,12 @@ use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Node\AbstractNode;
 use SebastianBergmann\CodeCoverage\Node\Directory as DirectoryNode;
 use SebastianBergmann\CodeCoverage\Node\File as FileNode;
+use SebastianBergmann\CodeCoverage\Report\Reporter;
 use SebastianBergmann\CodeCoverage\RuntimeException;
 use SebastianBergmann\CodeCoverage\Version;
 use SebastianBergmann\Environment\Runtime;
 
-final class Facade
+final class Facade extends Reporter
 {
     /**
      * @var string
@@ -56,6 +57,7 @@ final class Facade
         $this->project = new Project(
             $coverage->getReport()->getName()
         );
+        $this->project->setDetermineBranchCoverage($this->determineBranchCoverage);
 
         $this->setBuildInformation();
         $this->processTests($coverage->getTests());
@@ -135,6 +137,7 @@ final class Facade
         );
 
         $fileReport = new Report($path);
+        $fileReport->setDetermineBranchCoverage($this->determineBranchCoverage);
 
         $this->setTotals($file, $fileReport->getTotals());
 
@@ -146,7 +149,13 @@ final class Facade
             $this->processFunction($function, $fileReport);
         }
 
-        foreach ($file->getCoverageData() as $line => $tests) {
+        $fileCoverageData = $file->getCoverageData();
+        foreach ($fileCoverageData['lines'] as $line => $lineData) {
+            if ($lineData === null) {
+                continue;
+            }
+
+            $tests = $lineData['tests'];
             if (!\is_array($tests) || \count($tests) === 0) {
                 continue;
             }
@@ -202,6 +211,17 @@ final class Facade
                 (string) $method['executedLines'],
                 (string) $method['coverage']
             );
+
+            if ($this->determineBranchCoverage) {
+                $methodObject->setPathTotals(
+                    (string) $method['executablePaths'],
+                    (string) $method['executedPaths']
+                );
+                $methodObject->setBranchTotals(
+                    (string) $method['executableBranches'],
+                    (string) $method['executedBranches']
+                );
+            }
         }
     }
 
@@ -212,7 +232,22 @@ final class Facade
         $functionObject->setSignature($function['signature']);
         $functionObject->setLines((string) $function['startLine']);
         $functionObject->setCrap($function['crap']);
-        $functionObject->setTotals((string) $function['executableLines'], (string) $function['executedLines'], (string) $function['coverage']);
+        $functionObject->setTotals(
+            (string) $function['executableLines'],
+            (string) $function['executedLines'],
+            (string) $function['coverage']
+        );
+
+        if ($this->determineBranchCoverage) {
+            $functionObject->setPathTotals(
+                (string) $function['executablePaths'],
+                (string) $function['executedPaths']
+            );
+            $functionObject->setBranchTotals(
+                (string) $function['executableBranches'],
+                (string) $function['executedBranches']
+            );
+        }
     }
 
     private function processTests(array $tests): void
@@ -259,6 +294,18 @@ final class Facade
             $node->getNumFunctions(),
             $node->getNumTestedFunctions()
         );
+
+        if ($this->determineBranchCoverage) {
+            $totals->setNumPaths(
+                $node->getNumPaths(),
+                $node->getNumTestedPaths()
+            );
+
+            $totals->setNumBranches(
+                $node->getNumBranches(),
+                $node->getNumTestedBranches()
+            );
+        }
     }
 
     private function getTargetDirectory(): string

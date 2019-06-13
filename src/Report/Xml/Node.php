@@ -21,6 +21,11 @@ abstract class Node
      */
     private $contextNode;
 
+    /**
+     * @var bool
+     */
+    protected $determineBranchCoverage = false;
+
     public function __construct(\DOMElement $context)
     {
         $this->setContextNode($context);
@@ -44,7 +49,7 @@ abstract class Node
             );
         }
 
-        return new Totals($totalsContainer);
+        return new Totals($totalsContainer, $this->determineBranchCoverage);
     }
 
     public function addDirectory(string $name): Directory
@@ -57,7 +62,10 @@ abstract class Node
         $dirNode->setAttribute('name', $name);
         $this->getContextNode()->appendChild($dirNode);
 
-        return new Directory($dirNode);
+        $directory = new Directory($dirNode);
+        $directory->setDetermineBranchCoverage($this->determineBranchCoverage);
+
+        return $directory;
     }
 
     public function addFile(string $name, string $href): File
@@ -71,7 +79,15 @@ abstract class Node
         $fileNode->setAttribute('href', $href);
         $this->getContextNode()->appendChild($fileNode);
 
-        return new File($fileNode);
+        $file = new File($fileNode);
+        $file->setDetermineBranchCoverage($this->determineBranchCoverage);
+
+        return $file;
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     protected function setContextNode(\DOMElement $context): void

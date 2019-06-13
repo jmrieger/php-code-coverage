@@ -12,13 +12,14 @@ namespace SebastianBergmann\CodeCoverage\Report;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Node\File;
 use SebastianBergmann\CodeCoverage\Util;
+use SebastianBergmann\CodeCoverage\Report\Reporter;
 
 /**
  * Generates human readable output from a code coverage object.
  *
  * The output gets put into a text file our written to the CLI.
  */
-final class Text
+final class Text extends Reporter
 {
     /**
      * @var string
@@ -69,11 +70,6 @@ final class Text
      * @var bool
      */
     private $showOnlySummary;
-
-    /**
-     * @var bool
-     */
-    private $determineBranchCoverage = false;
 
     public function __construct(int $lowUpperBound = 50, int $highLowerBound = 90, bool $showUncoveredFiles = false, bool $showOnlySummary = false)
     {
@@ -348,11 +344,6 @@ final class Text
         }
 
         return $output . \PHP_EOL;
-    }
-
-    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
-    {
-        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     private function getCoverageColor(int $numberOfCoveredElements, int $totalNumberOfElements): string

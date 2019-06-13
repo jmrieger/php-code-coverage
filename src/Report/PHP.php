@@ -11,11 +11,12 @@ namespace SebastianBergmann\CodeCoverage\Report;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\RuntimeException;
+use SebastianBergmann\CodeCoverage\Report\Reporter;
 
 /**
  * Uses var_export() to write a SebastianBergmann\CodeCoverage\CodeCoverage object to a file.
  */
-final class PHP
+final class PHP extends Reporter
 {
     /**
      * @throws \SebastianBergmann\CodeCoverage\RuntimeException

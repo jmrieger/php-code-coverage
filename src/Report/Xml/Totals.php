@@ -43,7 +43,17 @@ final class Totals
      */
     private $traitsNode;
 
-    public function __construct(\DOMElement $container)
+    /**
+     * @var null|\DOMElement
+     */
+    private $pathsNode;
+
+    /**
+     * @var null|\DOMElement
+     */
+    private $branchesNode;
+
+    public function __construct(\DOMElement $container, bool $determineBranchCoverage = false)
     {
         $this->container = $container;
         $dom             = $container->ownerDocument;
@@ -78,6 +88,19 @@ final class Totals
         $container->appendChild($this->functionsNode);
         $container->appendChild($this->classesNode);
         $container->appendChild($this->traitsNode);
+
+        if ($determineBranchCoverage) {
+            $this->pathsNode = $dom->createElementNS(
+                'https://schema.phpunit.de/coverage/1.0',
+                'paths'
+            );
+            $this->branchesNode = $dom->createElementNS(
+                'https://schema.phpunit.de/coverage/1.0',
+                'branches'
+            );
+            $container->appendChild($this->pathsNode);
+            $container->appendChild($this->branchesNode);
+        }
     }
 
     public function getContainer(): \DOMNode
@@ -133,6 +156,34 @@ final class Totals
         $this->functionsNode->setAttribute('count', (string) $count);
         $this->functionsNode->setAttribute('tested', (string) $tested);
         $this->functionsNode->setAttribute(
+            'percent',
+            $count === 0 ? '0' : \sprintf('%01.2F', Util::percent($tested, $count))
+        );
+    }
+
+    public function setNumPaths(int $count, int $tested): void
+    {
+        if ($this->pathsNode === null) {
+            return;
+        }
+
+        $this->pathsNode->setAttribute('count', (string) $count);
+        $this->pathsNode->setAttribute('tested', (string) $tested);
+        $this->pathsNode->setAttribute(
+            'percent',
+            $count === 0 ? '0' : \sprintf('%01.2F', Util::percent($tested, $count))
+        );
+    }
+
+    public function setNumBranches(int $count, int $tested): void
+    {
+        if ($this->branchesNode === null) {
+            return;
+        }
+
+        $this->branchesNode->setAttribute('count', (string) $count);
+        $this->branchesNode->setAttribute('tested', (string) $tested);
+        $this->branchesNode->setAttribute(
             'percent',
             $count === 0 ? '0' : \sprintf('%01.2F', Util::percent($tested, $count))
         );

@@ -21,6 +21,11 @@ class File
      */
     private $contextNode;
 
+    /**
+     * @var bool
+     */
+    private $determineBranchCoverage = false;
+
     public function __construct(\DOMElement $context)
     {
         $this->dom         = $context->ownerDocument;
@@ -40,7 +45,7 @@ class File
             );
         }
 
-        return new Totals($totalsContainer);
+        return new Totals($totalsContainer, $this->determineBranchCoverage);
     }
 
     public function getLineCoverage(string $line): Coverage
@@ -67,6 +72,11 @@ class File
         );
 
         return new Coverage($lineNode, $line);
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     protected function getContextNode(): \DOMElement

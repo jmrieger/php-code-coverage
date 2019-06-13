@@ -11,12 +11,13 @@ namespace SebastianBergmann\CodeCoverage\Report\Html;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Node\Directory as DirectoryNode;
+use SebastianBergmann\CodeCoverage\Report\Reporter;
 use SebastianBergmann\CodeCoverage\RuntimeException;
 
 /**
  * Generates an HTML report from a code coverage object.
  */
-final class Facade
+final class Facade extends Reporter
 {
     /**
      * @var string
@@ -37,11 +38,6 @@ final class Facade
      * @var int
      */
     private $highLowerBound;
-
-    /**
-     * @var bool
-     */
-    private $determineBranchCoverage = false;
 
     public function __construct(int $lowUpperBound = 50, int $highLowerBound = 90, string $generator = '')
     {
@@ -119,11 +115,6 @@ final class Facade
         }
 
         $this->copyFiles($target);
-    }
-
-    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
-    {
-        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     /**

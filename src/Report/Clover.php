@@ -16,7 +16,7 @@ use SebastianBergmann\CodeCoverage\RuntimeException;
 /**
  * Generates a Clover XML logfile from a code coverage object.
  */
-final class Clover
+final class Clover extends Reporter
 {
     /**
      * @throws \RuntimeException
