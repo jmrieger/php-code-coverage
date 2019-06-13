@@ -69,6 +69,12 @@ final class File extends Renderer
                 'testedClassesPercentAsString'  => $node->getTestedClassesAndTraitsPercent(),
                 'testedBranchesPercent'         => $node->getTestedBranchesPercent(false),
                 'testedBranchesPercentAsString' => $node->getTestedBranchesPercent(),
+                'testedPathsPercent'            => $node->getTestedPathsPercent(false),
+                'testedPathsPercentAsString'    => $node->getTestedPathsPercent(),
+                'numExecutablePaths'            => $node->getNumPaths(),
+                'numExecutedPaths'              => $node->getNumTestedPaths(),
+                'numExecutableBranches'         => $node->getNumBranches(),
+                'numExecutedBranches'           => $node->getNumTestedBranches(),
                 'crap'                          => '<abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr>',
             ]
         );
@@ -123,47 +129,73 @@ final class File extends Renderer
                     $item['executableLines'],
                     true
                 );
+                $testedBranchesPercentAsString = Util::percent(
+                    $item['executedBranches'],
+                    $item['executableBranches'],
+                    true
+                );
+                $testedPathsPercentAsString    = Util::percent(
+                    $item['executedPaths'],
+                    $item['executablePaths'],
+                    true
+                );
             } else {
-                $numClasses                   = 'n/a';
-                $numTestedClasses             = 'n/a';
-                $linesExecutedPercentAsString = 'n/a';
+                $numClasses                    = 'n/a';
+                $numTestedClasses              = 'n/a';
+                $linesExecutedPercentAsString  = 'n/a';
+                $testedBranchesPercentAsString = 'n/a';
+                $testedPathsPercentAsString    = 'n/a';
             }
 
             $buffer .= $this->renderItemTemplate(
                 $template,
                 [
-                    'name'                         => $this->abbreviateClassName($name),
-                    'numClasses'                   => $numClasses,
-                    'numTestedClasses'             => $numTestedClasses,
-                    'numMethods'                   => $numMethods,
-                    'numTestedMethods'             => $numTestedMethods,
-                    'linesExecutedPercent'         => Util::percent(
+                    'name'                          => $this->abbreviateClassName($name),
+                    'numClasses'                    => $numClasses,
+                    'numTestedClasses'              => $numTestedClasses,
+                    'numMethods'                    => $numMethods,
+                    'numTestedMethods'              => $numTestedMethods,
+                    'linesExecutedPercent'          => Util::percent(
                         $item['executedLines'],
                         $item['executableLines'],
                         false
                     ),
-                    'linesExecutedPercentAsString' => $linesExecutedPercentAsString,
-                    'numExecutedLines'             => $item['executedLines'],
-                    'numExecutableLines'           => $item['executableLines'],
-                    'testedMethodsPercent'         => Util::percent(
+                    'linesExecutedPercentAsString'  => $linesExecutedPercentAsString,
+                    'numExecutedLines'              => $item['executedLines'],
+                    'numExecutableLines'            => $item['executableLines'],
+                    'testedMethodsPercent'          => Util::percent(
                         $numTestedMethods,
                         $numMethods
                     ),
-                    'testedMethodsPercentAsString' => Util::percent(
+                    'testedMethodsPercentAsString'  => Util::percent(
                         $numTestedMethods,
                         $numMethods,
                         true
                     ),
-                    'testedClassesPercent'         => Util::percent(
-                        $numTestedMethods == $numMethods ? 1 : 0,
+                    'testedClassesPercent'          => Util::percent(
+                        $numTestedMethods === $numMethods ? 1 : 0,
                         1
                     ),
                     'testedClassesPercentAsString' => Util::percent(
-                        $numTestedMethods == $numMethods ? 1 : 0,
+                        $numTestedMethods === $numMethods ? 1 : 0,
                         1,
                         true
                     ),
-                    'crap'                         => $item['crap'],
+                    'crap'                          => $item['crap'],
+                    'testedBranchesPercent'         => Util::percent(
+                        $item['executedBranches'],
+                        $item['executableBranches']
+                    ),
+                    'testedBranchesPercentAsString' => $testedBranchesPercentAsString,
+                    'testedPathsPercent'            => Util::percent(
+                        $item['executedPaths'],
+                        $item['executablePaths']
+                    ),
+                    'testedPathsPercentAsString'    => $testedPathsPercentAsString,
+                    'numExecutablePaths'            => $item['executablePaths'],
+                    'numExecutedPaths'              => $item['executedPaths'],
+                    'numExecutableBranches'         => $item['executableBranches'],
+                    'numExecutedBranches'           => $item['executedBranches'],
                 ]
             );
 
@@ -213,36 +245,58 @@ final class File extends Renderer
         return $this->renderItemTemplate(
             $template,
             [
-                'name'                         => \sprintf(
+                'name'                          => \sprintf(
                     '%s<a href="#%d"><abbr title="%s">%s</abbr></a>',
                     $indent,
                     $item['startLine'],
                     \htmlspecialchars($item['signature'], $this->htmlSpecialCharsFlags),
                     $item['functionName'] ?? $item['methodName']
                 ),
-                'numMethods'                   => $numMethods,
-                'numTestedMethods'             => $numTestedMethods,
-                'linesExecutedPercent'         => Util::percent(
+                'numMethods'                    => $numMethods,
+                'numTestedMethods'              => $numTestedMethods,
+                'linesExecutedPercent'          => Util::percent(
                     $item['executedLines'],
                     $item['executableLines']
                 ),
-                'linesExecutedPercentAsString' => Util::percent(
+                'linesExecutedPercentAsString'  => Util::percent(
                     $item['executedLines'],
                     $item['executableLines'],
                     true
                 ),
-                'numExecutedLines'             => $item['executedLines'],
-                'numExecutableLines'           => $item['executableLines'],
-                'testedMethodsPercent'         => Util::percent(
+                'numExecutedLines'              => $item['executedLines'],
+                'numExecutableLines'            => $item['executableLines'],
+                'testedMethodsPercent'          => Util::percent(
                     $numTestedMethods,
                     1
                 ),
-                'testedMethodsPercentAsString' => Util::percent(
+                'testedMethodsPercentAsString'  => Util::percent(
                     $numTestedMethods,
                     1,
                     true
                 ),
-                'crap'                         => $item['crap'],
+                'crap'                          => $item['crap'],
+                'testedBranchesPercent'         => Util::percent(
+                    $item['executedBranches'],
+                    $item['executableBranches']
+                ),
+                'testedBranchesPercentAsString' => Util::percent(
+                    $item['executedBranches'],
+                    $item['executableBranches'],
+                    true
+                ),
+                'testedPathsPercent'            => Util::percent(
+                    $item['executedPaths'],
+                    $item['executablePaths']
+                ),
+                'testedPathsPercentAsString'    => Util::percent(
+                    $item['executedPaths'],
+                    $item['executablePaths'],
+                    true
+                ),
+                'numExecutablePaths'            => $item['executablePaths'],
+                'numExecutedPaths'              => $item['executedPaths'],
+                'numExecutableBranches'         => $item['executableBranches'],
+                'numExecutedBranches'           => $item['executedBranches'],
             ]
         );
     }
@@ -260,12 +314,12 @@ final class File extends Renderer
             $popoverContent = '';
             $popoverTitle   = '';
 
-            if (\array_key_exists($i, $coverageData)) {
-                $numTests = ($coverageData[$i] ? \count($coverageData[$i]) : 0);
+            if (\array_key_exists($i, $coverageData['lines'])) {
+                $numTests = ($coverageData['lines'][$i] ? \count($coverageData['lines'][$i]['tests']) : 0);
 
-                if ($coverageData[$i] === null) {
+                if ($coverageData['lines'][$i]['tests'] === null) {
                     $trClass = ' class="warning"';
-                } elseif ($numTests == 0) {
+                } elseif ($numTests === 0) {
                     $trClass = ' class="danger"';
                 } else {
                     $lineCss        = 'covered-by-large-tests';
@@ -277,10 +331,10 @@ final class File extends Renderer
                         $popoverTitle = '1 test covers line ' . $i;
                     }
 
-                    foreach ($coverageData[$i] as $test) {
-                        if ($lineCss == 'covered-by-large-tests' && $testData[$test]['size'] == 'medium') {
+                    foreach ($coverageData['lines'][$i]['tests'] as $test) {
+                        if ($lineCss === 'covered-by-large-tests' && $testData[$test]['size'] === 'medium') {
                             $lineCss = 'covered-by-medium-tests';
-                        } elseif ($testData[$test]['size'] == 'small') {
+                        } elseif ($testData[$test]['size'] === 'small') {
                             $lineCss = 'covered-by-small-tests';
                         }
 

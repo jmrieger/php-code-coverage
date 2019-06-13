@@ -47,21 +47,29 @@ final class Directory extends Renderer
         $template->renderTo($file);
     }
 
-    protected function renderItem(Node $node, bool $total = false): string
+    private function renderItem(Node $node, bool $total = false): string
     {
         $data = [
-            'numClasses'                   => $node->getNumClassesAndTraits(),
-            'numTestedClasses'             => $node->getNumTestedClassesAndTraits(),
-            'numMethods'                   => $node->getNumFunctionsAndMethods(),
-            'numTestedMethods'             => $node->getNumTestedFunctionsAndMethods(),
-            'linesExecutedPercent'         => $node->getLineExecutedPercent(false),
-            'linesExecutedPercentAsString' => $node->getLineExecutedPercent(),
-            'numExecutedLines'             => $node->getNumExecutedLines(),
-            'numExecutableLines'           => $node->getNumExecutableLines(),
-            'testedMethodsPercent'         => $node->getTestedFunctionsAndMethodsPercent(false),
-            'testedMethodsPercentAsString' => $node->getTestedFunctionsAndMethodsPercent(),
-            'testedClassesPercent'         => $node->getTestedClassesAndTraitsPercent(false),
-            'testedClassesPercentAsString' => $node->getTestedClassesAndTraitsPercent(),
+            'numClasses'                    => $node->getNumClassesAndTraits(),
+            'numTestedClasses'              => $node->getNumTestedClassesAndTraits(),
+            'numMethods'                    => $node->getNumFunctionsAndMethods(),
+            'numTestedMethods'              => $node->getNumTestedFunctionsAndMethods(),
+            'linesExecutedPercent'          => $node->getLineExecutedPercent(false),
+            'linesExecutedPercentAsString'  => $node->getLineExecutedPercent(),
+            'numExecutedLines'              => $node->getNumExecutedLines(),
+            'numExecutableLines'            => $node->getNumExecutableLines(),
+            'testedMethodsPercent'          => $node->getTestedFunctionsAndMethodsPercent(false),
+            'testedMethodsPercentAsString'  => $node->getTestedFunctionsAndMethodsPercent(),
+            'testedClassesPercent'          => $node->getTestedClassesAndTraitsPercent(false),
+            'testedClassesPercentAsString'  => $node->getTestedClassesAndTraitsPercent(),
+            'testedBranchesPercent'         => $node->getTestedBranchesPercent(false),
+            'testedBranchesPercentAsString' => $node->getTestedBranchesPercent(),
+            'testedPathsPercent'            => $node->getTestedPathsPercent(false),
+            'testedPathsPercentAsString'    => $node->getTestedPathsPercent(),
+            'numExecutablePaths'            => $node->getNumPaths(),
+            'numExecutedPaths'              => $node->getNumTestedPaths(),
+            'numExecutableBranches'         => $node->getNumBranches(),
+            'numExecutedBranches'           => $node->getNumTestedBranches(),
         ];
 
         if ($total) {
