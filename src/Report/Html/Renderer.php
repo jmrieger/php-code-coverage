@@ -50,6 +50,11 @@ abstract class Renderer
      */
     protected $version;
 
+    /**
+     * @var bool
+     */
+    protected $determineBranchCoverage = false;
+
     public function __construct(string $templatePath, string $generator, string $date, int $lowUpperBound, int $highLowerBound)
     {
         $this->templatePath   = $templatePath;
@@ -58,6 +63,11 @@ abstract class Renderer
         $this->lowUpperBound  = $lowUpperBound;
         $this->highLowerBound = $highLowerBound;
         $this->version        = Version::id();
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     protected function renderItemTemplate(\Text_Template $template, array $data): string

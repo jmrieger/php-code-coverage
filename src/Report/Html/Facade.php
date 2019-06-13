@@ -38,6 +38,11 @@ final class Facade
      */
     private $highLowerBound;
 
+    /**
+     * @var bool
+     */
+    private $determineBranchCoverage = false;
+
     public function __construct(int $lowUpperBound = 50, int $highLowerBound = 90, string $generator = '')
     {
         $this->generator      = $generator;
@@ -69,6 +74,7 @@ final class Facade
             $this->lowUpperBound,
             $this->highLowerBound
         );
+        $dashboard->setDetermineBranchCoverage($this->determineBranchCoverage);
 
         $directory = new Directory(
             $this->templatePath,
@@ -77,6 +83,7 @@ final class Facade
             $this->lowUpperBound,
             $this->highLowerBound
         );
+        $directory->setDetermineBranchCoverage($this->determineBranchCoverage);
 
         $file = new File(
             $this->templatePath,
@@ -85,6 +92,7 @@ final class Facade
             $this->lowUpperBound,
             $this->highLowerBound
         );
+        $file->setDetermineBranchCoverage($this->determineBranchCoverage);
 
         $directory->render($report, $target . 'index.html');
         $dashboard->render($report, $target . 'dashboard.html');
@@ -111,6 +119,11 @@ final class Facade
         }
 
         $this->copyFiles($target);
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     /**
