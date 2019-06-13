@@ -27,7 +27,12 @@ final class File extends Renderer
      */
     public function render(FileNode $node, string $file): void
     {
-        $template = new \Text_Template($this->templatePath . 'file.html', '{{', '}}');
+        $templateName = $this->templatePath . 'file.html';
+        if ($this->determineBranchCoverage) {
+            $templateName = $this->templatePath . 'file_branch.html';
+        }
+
+        $template = new \Text_Template($templateName, '{{', '}}');
 
         $template->setVar(
             [
@@ -43,13 +48,16 @@ final class File extends Renderer
 
     protected function renderItems(FileNode $node): string
     {
-        $template = new \Text_Template($this->templatePath . 'file_item.html', '{{', '}}');
+        $fileTemplateName       = $this->templatePath . 'file_item.html';
+        $methodItemTemplateName = $this->templatePath . 'method_item.html';
 
-        $methodItemTemplate = new \Text_Template(
-            $this->templatePath . 'method_item.html',
-            '{{',
-            '}}'
-        );
+        if ($this->determineBranchCoverage) {
+            $fileTemplateName       = $this->templatePath . 'file_item_branch.html';
+            $methodItemTemplateName = $this->templatePath . 'method_item_branch.html';
+        }
+
+        $template           = new \Text_Template($fileTemplateName, '{{', '}}');
+        $methodItemTemplate = new \Text_Template($methodItemTemplateName, '{{', '}}');
 
         $items = $this->renderItemTemplate(
             $template,

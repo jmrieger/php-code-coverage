@@ -23,7 +23,12 @@ final class Directory extends Renderer
      */
     public function render(DirectoryNode $node, string $file): void
     {
-        $template = new \Text_Template($this->templatePath . 'directory.html', '{{', '}}');
+        $templateName = $this->templatePath . 'directory.html';
+        if ($this->determineBranchCoverage) {
+            $templateName = $this->templatePath . 'directory_branch.html';
+        }
+
+        $template = new \Text_Template($templateName, '{{', '}}');
 
         $this->setCommonTemplateVariables($template, $node);
 
@@ -98,8 +103,13 @@ final class Directory extends Renderer
             }
         }
 
+        $templateName = $this->templatePath . 'directory_item.html';
+        if ($this->determineBranchCoverage) {
+            $templateName = $this->templatePath . 'directory_item_branch.html';
+        }
+
         return $this->renderItemTemplate(
-            new \Text_Template($this->templatePath . 'directory_item.html', '{{', '}}'),
+            new \Text_Template($templateName, '{{', '}}'),
             $data
         );
     }
