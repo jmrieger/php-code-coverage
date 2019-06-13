@@ -579,7 +579,8 @@ final class File extends AbstractNode
             $paths,
             static function ($carry, $value) {
                 return ($value['hit'] > 0) ? $carry + 1 : $carry;
-            }
+            },
+            0
         );
     }
 

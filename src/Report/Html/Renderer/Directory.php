@@ -23,7 +23,12 @@ final class Directory extends Renderer
      */
     public function render(DirectoryNode $node, string $file): void
     {
-        $template = new \Text_Template($this->templatePath . 'directory.html', '{{', '}}');
+        $templateName = $this->templatePath . 'directory.html';
+        if ($this->determineBranchCoverage) {
+            $templateName = $this->templatePath . 'directory_branch.html';
+        }
+
+        $template = new \Text_Template($templateName, '{{', '}}');
 
         $this->setCommonTemplateVariables($template, $node);
 
@@ -47,21 +52,29 @@ final class Directory extends Renderer
         $template->renderTo($file);
     }
 
-    protected function renderItem(Node $node, bool $total = false): string
+    private function renderItem(Node $node, bool $total = false): string
     {
         $data = [
-            'numClasses'                   => $node->getNumClassesAndTraits(),
-            'numTestedClasses'             => $node->getNumTestedClassesAndTraits(),
-            'numMethods'                   => $node->getNumFunctionsAndMethods(),
-            'numTestedMethods'             => $node->getNumTestedFunctionsAndMethods(),
-            'linesExecutedPercent'         => $node->getLineExecutedPercent(false),
-            'linesExecutedPercentAsString' => $node->getLineExecutedPercent(),
-            'numExecutedLines'             => $node->getNumExecutedLines(),
-            'numExecutableLines'           => $node->getNumExecutableLines(),
-            'testedMethodsPercent'         => $node->getTestedFunctionsAndMethodsPercent(false),
-            'testedMethodsPercentAsString' => $node->getTestedFunctionsAndMethodsPercent(),
-            'testedClassesPercent'         => $node->getTestedClassesAndTraitsPercent(false),
-            'testedClassesPercentAsString' => $node->getTestedClassesAndTraitsPercent(),
+            'numClasses'                    => $node->getNumClassesAndTraits(),
+            'numTestedClasses'              => $node->getNumTestedClassesAndTraits(),
+            'numMethods'                    => $node->getNumFunctionsAndMethods(),
+            'numTestedMethods'              => $node->getNumTestedFunctionsAndMethods(),
+            'linesExecutedPercent'          => $node->getLineExecutedPercent(false),
+            'linesExecutedPercentAsString'  => $node->getLineExecutedPercent(),
+            'numExecutedLines'              => $node->getNumExecutedLines(),
+            'numExecutableLines'            => $node->getNumExecutableLines(),
+            'testedMethodsPercent'          => $node->getTestedFunctionsAndMethodsPercent(false),
+            'testedMethodsPercentAsString'  => $node->getTestedFunctionsAndMethodsPercent(),
+            'testedClassesPercent'          => $node->getTestedClassesAndTraitsPercent(false),
+            'testedClassesPercentAsString'  => $node->getTestedClassesAndTraitsPercent(),
+            'testedBranchesPercent'         => $node->getTestedBranchesPercent(false),
+            'testedBranchesPercentAsString' => $node->getTestedBranchesPercent(),
+            'testedPathsPercent'            => $node->getTestedPathsPercent(false),
+            'testedPathsPercentAsString'    => $node->getTestedPathsPercent(),
+            'numExecutablePaths'            => $node->getNumPaths(),
+            'numExecutedPaths'              => $node->getNumTestedPaths(),
+            'numExecutableBranches'         => $node->getNumBranches(),
+            'numExecutedBranches'           => $node->getNumTestedBranches(),
         ];
 
         if ($total) {
@@ -90,8 +103,13 @@ final class Directory extends Renderer
             }
         }
 
+        $templateName = $this->templatePath . 'directory_item.html';
+        if ($this->determineBranchCoverage) {
+            $templateName = $this->templatePath . 'directory_item_branch.html';
+        }
+
         return $this->renderItemTemplate(
-            new \Text_Template($this->templatePath . 'directory_item.html', '{{', '}}'),
+            new \Text_Template($templateName, '{{', '}}'),
             $data
         );
     }

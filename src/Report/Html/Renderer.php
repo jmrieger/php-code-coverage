@@ -50,6 +50,11 @@ abstract class Renderer
      */
     protected $version;
 
+    /**
+     * @var bool
+     */
+    protected $determineBranchCoverage = false;
+
     public function __construct(string $templatePath, string $generator, string $date, int $lowUpperBound, int $highLowerBound)
     {
         $this->templatePath   = $templatePath;
@@ -58,6 +63,11 @@ abstract class Renderer
         $this->lowUpperBound  = $lowUpperBound;
         $this->highLowerBound = $highLowerBound;
         $this->version        = Version::id();
+    }
+
+    public function setDetermineBranchCoverage(bool $determineBranchCoverage): void
+    {
+        $this->determineBranchCoverage = $determineBranchCoverage;
     }
 
     protected function renderItemTemplate(\Text_Template $template, array $data): string
@@ -112,23 +122,40 @@ abstract class Renderer
             $data['linesExecutedPercentAsString'] = 'n/a';
         }
 
+        $branchesLevel  = '';
+        $branchesNumber = '0' . $numSeparator . '0';
+        $branchesBar    = '';
+
+        // @todo - Remove the null coalesce
+        if (($data['numExecutableBranches'] ?? 0) > 0) {
+            $branchesLevel  = $this->getColorLevel($data['testedBranchesPercent']);
+            $branchesBar    = $this->getCoverageBar($data['testedBranchesPercent']);
+            $branchesNumber = $data['numExecutedBranches'] . $numSeparator . $data['numExecutableBranches'];
+        } else {
+            $data['testedBranchesPercentAsString'] = 'n/a';
+        }
+
         $template->setVar(
             [
-                'icon'                   => $data['icon'] ?? '',
-                'crap'                   => $data['crap'] ?? '',
-                'name'                   => $data['name'],
-                'lines_bar'              => $linesBar,
-                'lines_executed_percent' => $data['linesExecutedPercentAsString'],
-                'lines_level'            => $linesLevel,
-                'lines_number'           => $linesNumber,
-                'methods_bar'            => $methodsBar,
-                'methods_tested_percent' => $data['testedMethodsPercentAsString'],
-                'methods_level'          => $methodsLevel,
-                'methods_number'         => $methodsNumber,
-                'classes_bar'            => $classesBar,
-                'classes_tested_percent' => $data['testedClassesPercentAsString'] ?? '',
-                'classes_level'          => $classesLevel,
-                'classes_number'         => $classesNumber,
+                'icon'                    => $data['icon'] ?? '',
+                'crap'                    => $data['crap'] ?? '',
+                'name'                    => $data['name'],
+                'lines_bar'               => $linesBar,
+                'lines_executed_percent'  => $data['linesExecutedPercentAsString'],
+                'lines_level'             => $linesLevel,
+                'lines_number'            => $linesNumber,
+                'methods_bar'             => $methodsBar,
+                'methods_tested_percent'  => $data['testedMethodsPercentAsString'],
+                'methods_level'           => $methodsLevel,
+                'methods_number'          => $methodsNumber,
+                'classes_bar'             => $classesBar,
+                'classes_tested_percent'  => $data['testedClassesPercentAsString'] ?? '',
+                'classes_level'           => $classesLevel,
+                'classes_number'          => $classesNumber,
+                'branches_bar'            => $branchesBar,
+                'branches_tested_percent' => $data['testedBranchesPercentAsString'] ?? '',
+                'branches_level'          => $branchesLevel,
+                'branches_number'         => $branchesNumber,
             ]
         );
 
